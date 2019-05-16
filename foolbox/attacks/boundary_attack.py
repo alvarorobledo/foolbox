@@ -612,7 +612,7 @@ class BoundaryAttack(Attack):
                 self.save_info_df(a, step)
 
         #save info_df in a pickle file, for later access
-        filename = 'info_df.pickle'
+        filename = 'info_df_batch{}_dirs{}.pickle'.format(str(self.batch_size), str(self.max_directions))
         pickle_out = open(filename, 'wb')
         pickle.dump(self.info_df, pickle_out)
         pickle_out.close()
@@ -1196,7 +1196,7 @@ class BoundaryAttack(Attack):
             "iterations": step,
             "total calls": a._total_prediction_calls,
             "distance": a.distance.value,
-            "shperical step": self.spherical_step,
+            "spherical step": self.spherical_step,
             "source step": self.source_step,
             "batch size": self.batch_size,
             "adv image": a.image

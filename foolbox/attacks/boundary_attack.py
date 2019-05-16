@@ -20,6 +20,8 @@ from .blended_noise import BlendedUniformNoiseAttack
 import numpy as np
 from numpy.linalg import norm
 
+import pandas as pd
+import pickle
 
 class BoundaryAttack(Attack):
     """A powerful adversarial attack that requires neither gradients
@@ -138,6 +140,11 @@ class BoundaryAttack(Attack):
         self.source_step = source_step
         self.internal_dtype = internal_dtype
         self.verbose = verbose
+
+        #initialise empty dataframe to store important data (for later plots)
+        self.info_df = pd.DataFrame(columns=['iterations','total calls','distance',
+                                            'shperical step','source step','batch size',
+                                            'adv image'])
 
         if not verbose:
             print('run with verbose=True to see details')
@@ -600,6 +607,15 @@ class BoundaryAttack(Attack):
                 warnings.warn('Too many intenral inconsistencies,'
                               ' aborting attack.')
                 break
+
+            if (step % 10 == 0):
+                self.save_info_df(a, step)
+
+        #save info_df in a pickle file, for later access
+        filename = 'info_df.pickle'
+        pickle_out = open(filename, 'wb')
+        pickle.dump(self.info_df, pickle_out)
+        pickle_out.close()
 
         # ===========================================================
         # Stop threads that generate random numbers
@@ -1175,6 +1191,16 @@ class BoundaryAttack(Attack):
         if self.verbose:
             print(*args, **kwargs)
 
+    def save_info_df(self, a, step):
+        self.info_df = self.info_df.append({
+            "iterations": step,
+            "total calls": a._total_prediction_calls,
+            "distance": a.distance.value,
+            "shperical step": self.spherical_step,
+            "source step": self.source_step,
+            "batch size": self.batch_size,
+            "adv image": a.image
+        }, ignore_index=True)
 
 class DummyExecutor(Executor):
 

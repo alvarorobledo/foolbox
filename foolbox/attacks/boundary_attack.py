@@ -140,6 +140,8 @@ class BoundaryAttack(Attack):
         self.step_adaptation = step_adaptation
         self.spherical_step = spherical_step
         self.source_step = source_step
+        self.bb_coords = bb_coords
+        self.k_factor=k_factor
         self.internal_dtype = internal_dtype
         self.verbose = verbose
 
@@ -407,6 +409,8 @@ class BoundaryAttack(Attack):
                 unnormalized_source_direction,
                 source_direction,
                 source_norm,
+                self.bb_coords,
+                self.k_factor,
                 self.spherical_step,
                 self.source_step,
                 self.internal_dtype)
@@ -710,6 +714,8 @@ class BoundaryAttack(Attack):
             unnormalized_source_direction,
             source_direction,
             source_norm,
+            bb_coords,
+            k_factor,
             spherical_step,
             source_step,
             internal_dtype,

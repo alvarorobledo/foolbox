@@ -758,7 +758,7 @@ class BoundaryAttack(Attack):
         if bb_coords is not None:
             #if a bounding box was passed, apply the k_factor
             [bb_x, bb_y] = bb_coords
-            perturbation[bb_y[0]:bb_y[1]][bb_x[0]:bb_x[1]] *= k_factor
+            perturbation[bb_y[0]:bb_y[1],bb_x[0]:bb_x[1]] *= k_factor
 
         # ===========================================================
         # calculate candidate on sphere
@@ -1133,10 +1133,10 @@ class BoundaryAttack(Attack):
         def is_full(deque):
             return len(deque) == deque.maxlen
 
-        if not (is_full(self.stats_spherical_adversarial) or
-                is_full(self.stats_step_adversarial)):
-            # updated step size recently, not doing anything now
-            return
+        # if not (is_full(self.stats_spherical_adversarial) or
+        #         is_full(self.stats_step_adversarial)):
+        #     # updated step size recently, not doing anything now
+        #     return
 
         def estimate_probability(deque):
             if len(deque) == 0:
@@ -1194,6 +1194,8 @@ class BoundaryAttack(Attack):
             if message is not None:
                 self.stats_step_adversarial.clear()
                 log(message)
+
+        log('n') #test log values of spherical and source step potential updates
 
     def has_converged(self, strict):
         if strict:

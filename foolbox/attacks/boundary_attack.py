@@ -1223,7 +1223,7 @@ class BoundaryAttack(Attack):
             "source step": self.source_step,
             "batch size": self.batch_size,
             "adv image": a.image,
-            "k": k_factor
+            "k": self.k_factor
         }, ignore_index=True)
 
 class DummyExecutor(Executor):

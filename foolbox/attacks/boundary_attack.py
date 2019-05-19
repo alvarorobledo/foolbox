@@ -69,7 +69,7 @@ class BoundaryAttack(Attack):
             step_adaptation=1.5,
             batch_size=1,
             k_factor=1,
-            bb_coords=None
+            bb_coords=None,
             tune_batch_size=True,
             threaded_rnd=True,
             threaded_gen=True,

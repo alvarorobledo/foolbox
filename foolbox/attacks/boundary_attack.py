@@ -70,6 +70,7 @@ class BoundaryAttack(Attack):
             batch_size=1,
             k_factor=1,
             bb_coords=None,
+            save_df=True,
             tune_batch_size=True,
             threaded_rnd=True,
             threaded_gen=True,
@@ -142,6 +143,7 @@ class BoundaryAttack(Attack):
         self.source_step = source_step
         self.bb_coords = bb_coords
         self.k_factor=k_factor
+        self.save_df=save_df
         self.internal_dtype = internal_dtype
         self.verbose = verbose
 
@@ -614,14 +616,15 @@ class BoundaryAttack(Attack):
                               ' aborting attack.')
                 break
 
-            if (step % 10 == 0):
+            if (step % 10 == 0) and self.save_df:
                 self.save_info_df(a, step)
             
-        #save info_df in a pickle file, for later access
-        filename = 'info_df_batch{}_dirs{}.pickle'.format(str(self.batch_size), str(self.max_directions))
-        pickle_out = open(filename, 'wb')
-        pickle.dump(self.info_df, pickle_out)
-        pickle_out.close()
+        if self.save_df:
+            #save info_df in a pickle file, for later access
+            filename = 'info_df_batch{}_dirs{}.pickle'.format(str(self.batch_size), str(self.max_directions))
+            pickle_out = open(filename, 'wb')
+            pickle.dump(self.info_df, pickle_out)
+            pickle_out.close()
 
         # ===========================================================
         # Stop threads that generate random numbers

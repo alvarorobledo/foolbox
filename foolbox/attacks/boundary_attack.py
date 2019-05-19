@@ -68,6 +68,8 @@ class BoundaryAttack(Attack):
             source_step=1e-2,
             step_adaptation=1.5,
             batch_size=1,
+            k_factor=1,
+            bb_coords=None
             tune_batch_size=True,
             threaded_rnd=True,
             threaded_gen=True,
@@ -610,7 +612,7 @@ class BoundaryAttack(Attack):
 
             if (step % 10 == 0):
                 self.save_info_df(a, step)
-
+            
         #save info_df in a pickle file, for later access
         filename = 'info_df_batch{}_dirs{}.pickle'.format(str(self.batch_size), str(self.max_directions))
         pickle_out = open(filename, 'wb')
@@ -746,6 +748,11 @@ class BoundaryAttack(Attack):
             perturbation = rnd_normal_queue.get()
 
         assert perturbation.dtype == internal_dtype
+
+        if bb_coords is not None:
+            #if a bounding box was passed, apply the k_factor
+            [bb_x, bb_y] = bb_coords
+            perturbation[bb_y[0]:bb_y[1]][bb_x[0]:bb_x[1]] *= k_factor
 
         # ===========================================================
         # calculate candidate on sphere

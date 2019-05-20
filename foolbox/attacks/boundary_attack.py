@@ -406,7 +406,7 @@ class BoundaryAttack(Attack):
 
             d = distance.value
             self.k_factor = 454.21*d*d + 29.544*d + 0.1268 #experimental formula, to be changed 
-            self.k_factor = max(0.8, self.k_factor)
+            self.k_factor = max(0.33, self.k_factor)
             self.k_factor = min(10, self.k_factor)
 
             generation_args = (

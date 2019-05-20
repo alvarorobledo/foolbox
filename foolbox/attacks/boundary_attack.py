@@ -22,6 +22,7 @@ from numpy.linalg import norm
 
 import pandas as pd
 import pickle
+from skimage.measure import compare_ssim
 
 class BoundaryAttack(Attack):
     """A powerful adversarial attack that requires neither gradients
@@ -405,7 +406,7 @@ class BoundaryAttack(Attack):
 
             d = distance.value
             self.k_factor = 454.21*d*d + 29.544*d + 0.1268 #experimental formula, to be changed 
-            self.k_factor = max(0.3, self.k_factor)
+            self.k_factor = max(0.8, self.k_factor)
             self.k_factor = min(10, self.k_factor)
 
             generation_args = (
@@ -623,7 +624,7 @@ class BoundaryAttack(Attack):
 
             if (step % 10 == 0) and self.save_df:
                 self.save_info_df(a, step)
-            
+                        
         if self.save_df:
             #save info_df in a pickle file, for later access
             filename = 'info_df_batch{}_dirs{}.pickle'.format(str(self.batch_size), str(self.max_directions))
@@ -1215,6 +1216,7 @@ class BoundaryAttack(Attack):
             print(*args, **kwargs)
 
     def save_info_df(self, a, step):
+        ssim = compare_ssim(a.original_image, a.image, multichannel=True)
         self.info_df = self.info_df.append({
             "iterations": step,
             "total calls": a._total_prediction_calls,
@@ -1223,7 +1225,8 @@ class BoundaryAttack(Attack):
             "source step": self.source_step,
             "batch size": self.batch_size,
             "adv image": a.image,
-            "k": self.k_factor
+            "k": self.k_factor,
+            "ssim": ssim
         }, ignore_index=True)
 
 class DummyExecutor(Executor):

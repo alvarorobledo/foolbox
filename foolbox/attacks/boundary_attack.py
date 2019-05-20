@@ -70,6 +70,7 @@ class BoundaryAttack(Attack):
             step_adaptation=1.5,
             batch_size=1,
             k_factor=1,
+            heatmap=None,
             bb_coords=None,
             save_df=True,
             tune_batch_size=True,
@@ -144,6 +145,7 @@ class BoundaryAttack(Attack):
         self.source_step = source_step
         self.bb_coords = bb_coords
         self.k_factor=k_factor
+        self.heatmap=heatmap
         self.save_df=save_df
         self.internal_dtype = internal_dtype
         self.verbose = verbose
@@ -419,6 +421,7 @@ class BoundaryAttack(Attack):
                 source_norm,
                 self.bb_coords,
                 self.k_factor,
+                self.heatmap,
                 self.spherical_step,
                 self.source_step,
                 self.internal_dtype)
@@ -725,6 +728,7 @@ class BoundaryAttack(Attack):
             source_norm,
             bb_coords,
             k_factor,
+            heatmap,
             spherical_step,
             source_step,
             internal_dtype,
@@ -762,7 +766,10 @@ class BoundaryAttack(Attack):
         else:
             perturbation = rnd_normal_queue.get()
 
+
         assert perturbation.dtype == internal_dtype
+
+        perturbation = np.multiply(perturbation,heatmap) #apply heatmap to perturbation elementwise
 
         if bb_coords is not None:
             #if a bounding box was passed, apply the k_factor

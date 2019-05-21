@@ -73,7 +73,7 @@ class BoundaryAttack(Attack):
             heatmap=None,
             bb_coords=None,
             query_limit=None,
-            save_df=True,
+            df_filename=None,
             tune_batch_size=True,
             threaded_rnd=True,
             threaded_gen=True,
@@ -148,7 +148,7 @@ class BoundaryAttack(Attack):
         self.k_factor=k_factor
         self.heatmap=heatmap
         self.query_limit=query_limit
-        self.save_df=save_df
+        self.df_filename=df_filename
         self.internal_dtype = internal_dtype
         self.verbose = verbose
 
@@ -631,13 +631,12 @@ class BoundaryAttack(Attack):
                               ' aborting attack.')
                 break
 
-            if (step % 10 == 0) and self.save_df:
+            if (step % 10 == 0) and self.df_filename is not None:
                 self.save_info_df(a, step)
                         
-        if self.save_df:
+        if self.df_filename is not None:
             #save info_df in a pickle file, for later access
-            filename = 'info_df_batch{}_dirs{}.pickle'.format(str(self.batch_size), str(self.max_directions))
-            pickle_out = open(filename, 'wb')
+            pickle_out = open(self.df_filename, 'wb')
             pickle.dump(self.info_df, pickle_out)
             pickle_out.close()
 

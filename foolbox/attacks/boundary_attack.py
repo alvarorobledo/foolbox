@@ -72,6 +72,7 @@ class BoundaryAttack(Attack):
             k_factor=1,
             heatmap=None,
             bb_coords=None,
+            query_limit=None,
             save_df=True,
             tune_batch_size=True,
             threaded_rnd=True,
@@ -146,6 +147,7 @@ class BoundaryAttack(Attack):
         self.bb_coords = bb_coords
         self.k_factor=k_factor
         self.heatmap=heatmap
+        self.query_limit=query_limit
         self.save_df=save_df
         self.internal_dtype = internal_dtype
         self.verbose = verbose
@@ -153,7 +155,7 @@ class BoundaryAttack(Attack):
         #initialise empty dataframe to store important data (for later plots)
         self.info_df = pd.DataFrame(columns=['iterations','total calls','distance',
                                             'shperical step','source step','batch size',
-                                            'adv image', 'k'])
+                                            'ssim'])
 
         if not verbose:
             print('run with verbose=True to see details')
@@ -343,6 +345,10 @@ class BoundaryAttack(Attack):
         resetted = False
 
         for step in range(1, iterations + 1):
+            if self.query_limit is not None:
+                #we are operating in a query-limited scenario
+                if a._total_prediction_calls >= self.query_limit:
+                    break
             t_step = time.time()
 
             # ===========================================================
@@ -1231,8 +1237,6 @@ class BoundaryAttack(Attack):
             "spherical step": self.spherical_step,
             "source step": self.source_step,
             "batch size": self.batch_size,
-            "adv image": a.image,
-            "k": self.k_factor,
             "ssim": ssim
         }, ignore_index=True)
 

@@ -1154,10 +1154,10 @@ class BoundaryAttack(Attack):
         def is_full(deque):
             return len(deque) == deque.maxlen
 
-        # if not (is_full(self.stats_spherical_adversarial) or
-        #         is_full(self.stats_step_adversarial)):
-        #     # updated step size recently, not doing anything now
-        #     return
+        if not (is_full(self.stats_spherical_adversarial) or
+                is_full(self.stats_step_adversarial)):
+            # updated step size recently, not doing anything now
+            return
 
         def estimate_probability(deque):
             if len(deque) == 0:
@@ -1216,7 +1216,7 @@ class BoundaryAttack(Attack):
                 self.stats_step_adversarial.clear()
                 log(message)
 
-        log('n') #test log values of spherical and source step potential updates
+        #log('n') #test log values of spherical and source step potential updates
 
     def has_converged(self, strict):
         if strict:

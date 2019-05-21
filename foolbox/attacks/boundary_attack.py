@@ -345,6 +345,10 @@ class BoundaryAttack(Attack):
         resetted = False
 
         for step in range(1, iterations + 1):
+
+            if self.df_filename is not None: #save data every iteration
+                self.save_info_df(a, step-1)
+            
             if self.query_limit is not None:
                 #we are operating in a query-limited scenario
                 if a._total_prediction_calls >= self.query_limit:
@@ -631,8 +635,6 @@ class BoundaryAttack(Attack):
                               ' aborting attack.')
                 break
 
-            if (step % 10 == 0) and self.df_filename is not None:
-                self.save_info_df(a, step)
                         
         if self.df_filename is not None:
             #save info_df in a pickle file, for later access

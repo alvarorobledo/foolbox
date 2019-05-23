@@ -22,7 +22,7 @@ from numpy.linalg import norm
 
 import pandas as pd
 import pickle
-from skimage.measure import compare_ssim
+from skimage.measure import compare_ssim, compare_psnr
 
 class BoundaryAttack(Attack):
     """A powerful adversarial attack that requires neither gradients
@@ -155,7 +155,7 @@ class BoundaryAttack(Attack):
         #initialise empty dataframe to store important data (for later plots)
         self.info_df = pd.DataFrame(columns=['iterations','total calls','distance',
                                             'shperical step','source step','batch size',
-                                            'ssim'])
+                                            'ssim', 'psnr'])
 
         if not verbose:
             print('run with verbose=True to see details')
@@ -1231,6 +1231,7 @@ class BoundaryAttack(Attack):
 
     def save_info_df(self, a, step):
         ssim = compare_ssim(a.original_image, a.image, multichannel=True)
+        psnr = compare_psnr(a.original_image, a.image)
         self.info_df = self.info_df.append({
             "iterations": step,
             "total calls": a._total_prediction_calls,
@@ -1238,7 +1239,8 @@ class BoundaryAttack(Attack):
             "spherical step": self.spherical_step,
             "source step": self.source_step,
             "batch size": self.batch_size,
-            "ssim": ssim
+            "ssim": ssim,
+            "psnr": psnr
         }, ignore_index=True)
 
 class DummyExecutor(Executor):

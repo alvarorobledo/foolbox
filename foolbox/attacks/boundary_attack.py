@@ -429,12 +429,10 @@ class BoundaryAttack(Attack):
             self.k_factor = max(0.33, self.k_factor)
             self.k_factor = min(10, self.k_factor)
 
-            if distance.value < 0.03 and distance.value > 0.05:
-                alpha = np.interp(distance.value, [0, 1], [0.03, 0.005])
-                print(alpha)
+            if distance.value < 0.02 and distance.value > 0.005:
+                alpha = np.interp(distance.value, [0, 1], [0.02, 0.005])
                 diff = np.ones(shape=(224,224,3)) - self.initialheatmap
                 self.heatmap = self.initialheatmap + alpha * diff
-                print('heatmap val:', self.heatmap[0,0,0])
             elif distance.value > 0.005:
                 self.heatmap = np.ones(shape=(224,224,3))
 

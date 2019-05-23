@@ -147,6 +147,7 @@ class BoundaryAttack(Attack):
         self.bb_coords = bb_coords
         self.k_factor=k_factor
         self.heatmap=heatmap
+        self.initialheatmap = heatmap.copy()
         self.query_limit=query_limit
         self.df_filename=df_filename
         self.internal_dtype = internal_dtype
@@ -348,6 +349,13 @@ class BoundaryAttack(Attack):
 
             if self.df_filename is not None: #save data every iteration
                 self.save_info_df(a, step-1)
+
+            if ((step-1) % 100 == 0):
+                from matplotlib import pyplot as plt
+                plt.figure()
+                plt.imshow(a.image[:,:,::-1]/255)
+                plt.title('model calls: ' + str(a._total_prediction_calls) + ', ' + str(a.distance))
+                plt.savefig('adv_{}.png'.format(str(step-1)), dpi=600, bbox_inches='tight')
             
             if self.query_limit is not None:
                 #we are operating in a query-limited scenario
@@ -420,6 +428,15 @@ class BoundaryAttack(Attack):
             self.k_factor = 454.21*d*d + 29.544*d + 0.1268 #experimental formula, to be changed 
             self.k_factor = max(0.33, self.k_factor)
             self.k_factor = min(10, self.k_factor)
+
+            if distance.value < 0.03 and distance.value > 0.05:
+                alpha = np.interp(distance.value, [0, 1], [0.03, 0.005])
+                print(alpha)
+                diff = np.ones(shape=(224,224,3)) - self.initialheatmap
+                self.heatmap = self.initialheatmap + alpha * diff
+                print('heatmap val:', self.heatmap[0,0,0])
+            elif distance.value > 0.005:
+                self.heatmap = np.ones(shape=(224,224,3))
 
             generation_args = (
                 rnd_normal_queue,

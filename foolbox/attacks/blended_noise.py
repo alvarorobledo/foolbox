@@ -17,7 +17,7 @@ class BlendedUniformNoiseAttack(Attack):
 
     @call_decorator
     def __call__(self, input_or_adv, label=None, unpack=True,
-                 epsilons=1000, max_directions=1000):
+                 epsilons=100, max_directions=100):
 
         """Blends the image with a uniform noise image until it
         is misclassified.
@@ -60,9 +60,10 @@ class BlendedUniformNoiseAttack(Attack):
             # is that one
             random_image = nprng.uniform(
                 min_, max_, size=image.shape).astype(image.dtype)
+            random_image = np.round(random_image)
             _, is_adversarial = a.predictions(random_image)
             if is_adversarial:
-                logging.info('Found adversarial image after {} '
+                print('Found adversarial image after {} '
                              'attempts'.format(j + 1))
                 break
         else:
@@ -77,9 +78,11 @@ class BlendedUniformNoiseAttack(Attack):
             perturbed = (1 - epsilon) * image + epsilon * random_image
             # due to limited floating point precision,
             # clipping can be required
+            perturbed = np.round(perturbed)
             if not a.in_bounds(perturbed):  # pragma: no cover
                 np.clip(perturbed, min_, max_, out=perturbed)
 
             _, is_adversarial = a.predictions(perturbed)
             if is_adversarial:
+                print(epsilon)
                 return

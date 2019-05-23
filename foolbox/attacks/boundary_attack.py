@@ -1231,8 +1231,6 @@ class BoundaryAttack(Attack):
 
     def save_info_df(self, a, step):
         ssim = compare_ssim(a.original_image, a.image, multichannel=True)
-        print(a.original_image.min(), a.original_image.max())#
-        print(a.image.min(), a.image.max())
         psnr = compare_psnr(a.original_image, a.image, data_range=255)
         self.info_df = self.info_df.append({
             "iterations": step,

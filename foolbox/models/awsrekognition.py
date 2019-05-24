@@ -46,13 +46,12 @@ class AWSRekognitionModel(Model):
         :return: a numpy array with shape (1,) to comply with the assumptions that a typical prediction (logits or probabilities) are 1D.
         """
 
-        encoded_image = self.encode_image_AWS(image, extension='.png')
-        decoded_image = self.decode_image_AWS(encoded_image)
-        if not (np.array_equal(image, decoded_image)): #check if both are equal
-            print('images not equal!')
-            print(decoded_image.max(), decoded_image.min())
-            diff = image-decoded_image
-            print(diff)
+        # encoded_image = self.encode_image_AWS(image, extension='.png')
+        # decoded_image = self.decode_image_AWS(encoded_image)
+        # if not (np.array_equal(image, decoded_image)): #check if both are equal
+        #     print('images not equal!')
+        #     print(decoded_image.max(), decoded_image.min())
+        #     diff = image-decoded_image
         #replace all of this when ready to get predictions from API
         arr = self.localmodel.predictions(image)
         # pred_labels = (-arr).argsort()[:5]

@@ -50,7 +50,8 @@ class AWSRekognitionModel(Model):
         decoded_image = self.decode_image_AWS(encoded_image)
         if not (np.array_equal(image, decoded_image)): #check if both are equal
             print('images not equal!')
-            diff = image-encoded_image
+            print(decoded_image.max(), decoded_image.min())
+            diff = image-decoded_image
             print(diff)
         #replace all of this when ready to get predictions from API
         arr = self.localmodel.predictions(image)

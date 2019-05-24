@@ -48,8 +48,10 @@ class AWSRekognitionModel(Model):
 
         encoded_image = self.encode_image_AWS(image, extension='.png')
         decoded_image = self.decode_image_AWS(encoded_image)
-        assert(np.array_equal(image, decoded_image)) #check if both are equal
-
+        if not (np.array_equal(image, decoded_image)): #check if both are equal
+            print('images not equal!')
+            diff = image-encoded_image
+            print(diff)
         #replace all of this when ready to get predictions from API
         arr = self.localmodel.predictions(image)
         # pred_labels = (-arr).argsort()[:5]

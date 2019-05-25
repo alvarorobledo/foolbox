@@ -23,6 +23,7 @@ from numpy.linalg import norm
 import pandas as pd
 import pickle
 from skimage.measure import compare_ssim, compare_psnr
+import cv2
 
 class BoundaryAttack(Attack):
     """A powerful adversarial attack that requires neither gradients
@@ -70,6 +71,7 @@ class BoundaryAttack(Attack):
             step_adaptation=1.5,
             batch_size=1,
             k_factor=1,
+            r=1,
             heatmap=None,
             bb_coords=None,
             query_limit=None,
@@ -147,6 +149,7 @@ class BoundaryAttack(Attack):
         self.bb_coords = bb_coords
         self.k_factor=k_factor
         self.heatmap=heatmap
+        self.r = r
         self.initialheatmap = heatmap.copy()
         self.query_limit=query_limit
         self.df_filename=df_filename
@@ -322,10 +325,14 @@ class BoundaryAttack(Attack):
 
             # start threads that sample from std normal distribution
             rnd_normal_threads = []
+
+            rd = int(original.shape[1]*self.r) #check that this actually gives an integer!
+            new_shape = (rd, rd, 3)
+
             for thread_id in range(threaded_rnd):
                 rnd_normal_thread = threading.Thread(
                     target=sample_std_normal,
-                    args=(thread_id, original.shape, original.dtype))
+                    args=(thread_id, new_shape, original.dtype))
                 rnd_normal_thread.start()
                 rnd_normal_threads.append(rnd_normal_thread)
         else:
@@ -424,18 +431,7 @@ class BoundaryAttack(Attack):
             unnormalized_source_direction, source_direction, source_norm \
                 = self.prepare_generate_candidates(original, perturbed)
 
-            d = distance.value
-            self.k_factor = 454.21*d*d + 29.544*d + 0.1268 #experimental formula, to be changed 
-            self.k_factor = max(0.33, self.k_factor)
-            self.k_factor = min(10, self.k_factor)
-
-            if distance.value < 0.02 and distance.value > 0.005:
-                alpha = np.interp(distance.value, [0, 1], [0.02, 0.005])
-                diff = np.ones(shape=(224,224,3)) - self.initialheatmap
-                self.heatmap = self.initialheatmap + alpha * diff
-            elif distance.value > 0.005:
-                self.heatmap = np.ones(shape=(224,224,3))
-
+ 
             generation_args = (
                 rnd_normal_queue,
                 bounds,
@@ -447,6 +443,7 @@ class BoundaryAttack(Attack):
                 self.bb_coords,
                 self.k_factor,
                 self.heatmap,
+                self.r,
                 self.spherical_step,
                 self.source_step,
                 self.internal_dtype)
@@ -656,7 +653,7 @@ class BoundaryAttack(Attack):
             pickle_out = open(self.df_filename, 'wb')
             pickle.dump(self.info_df, pickle_out)
             pickle_out.close()
-
+        
         # ===========================================================
         # Stop threads that generate random numbers
         # ===========================================================
@@ -751,6 +748,7 @@ class BoundaryAttack(Attack):
             bb_coords,
             k_factor,
             heatmap,
+            r,
             spherical_step,
             source_step,
             internal_dtype,
@@ -782,6 +780,10 @@ class BoundaryAttack(Attack):
 
         # randomgen's rnd is faster and more flexible than numpy's if
         # has a dtype argument and supports the much faster Ziggurat method
+
+        rd = int(original.shape[1]*r) #check that this actually gives an integer!
+        shape = (rd, rd, 3)
+
         if rnd_normal_queue is None:
             perturbation = rng.standard_normal(
                 size=shape, dtype=original.dtype)
@@ -791,7 +793,24 @@ class BoundaryAttack(Attack):
 
         assert perturbation.dtype == internal_dtype
 
-        perturbation = np.multiply(perturbation,heatmap) #apply heatmap to perturbation elementwise
+        d = original.shape[1]  #should be 224 for imagenet
+
+        nu1 = np.zeros(shape=(d,d))
+        nu2 = np.zeros(shape=(d,d))
+        nu3 = np.zeros(shape=(d,d))
+
+        nu1[:rd,:rd] = perturbation[:,:,0]
+        nu2[:rd,:rd] = perturbation[:,:,1]
+        nu3[:rd,:rd] = perturbation[:,:,2]
+
+        idct = np.zeros(shape=(d, d, 3))
+        idct[:,:,0] = cv2.idct(nu1)
+        idct[:,:,1] = cv2.idct(nu2)
+        idct[:,:,2] = cv2.idct(nu3)
+
+        perturbation = idct
+
+        #perturbation = np.multiply(perturbation,heatmap) #apply heatmap to perturbation elementwise
 
         if bb_coords is not None:
             #if a bounding box was passed, apply the k_factor

@@ -14,7 +14,7 @@ class AdditiveNoiseAttack(Attack):
     """
 
     @call_decorator
-    def __call__(self, input_or_adv, label=None, unpack=True, epsilons=1000):
+    def __call__(self, input_or_adv, label=None, unpack=True, epsilons=100):
         """Adds uniform or Gaussian noise to the image, gradually increasing
         the standard deviation until the image is misclassified.
 
@@ -51,10 +51,12 @@ class AdditiveNoiseAttack(Attack):
         for epsilon in epsilons:
             noise = self._sample_noise(epsilon, image, bounds)
             perturbed = image + epsilon * noise
+            perturbed = np.round(perturbed)
             perturbed = np.clip(perturbed, min_, max_)
 
             _, is_adversarial = a.predictions(perturbed)
             if is_adversarial:
+                print(epsilon)
                 return
 
     @abstractmethod
@@ -87,4 +89,5 @@ class AdditiveGaussianNoiseAttack(AdditiveNoiseAttack):
         std = epsilon / np.sqrt(3) * (max_ - min_)
         noise = nprng.normal(scale=std, size=image.shape)
         noise = noise.astype(image.dtype)
+        print('std:', std, 'epsilon', epsilon)
         return noise

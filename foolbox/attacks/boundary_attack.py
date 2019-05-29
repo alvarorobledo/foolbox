@@ -361,8 +361,13 @@ class BoundaryAttack(Attack):
                 from matplotlib import pyplot as plt
                 plt.figure()
                 plt.imshow(a.image[:,:,::-1]/255)
-                plt.title('model calls: ' + str(a._total_prediction_calls) + ', ' + str(a.distance))
-                plt.savefig('adv_{}.png'.format(str(step-1)), dpi=600, bbox_inches='tight')
+                ssim = compare_ssim(a.original_image, a.image, multichannel=True)
+                psnr = compare_psnr(a.original_image, a.image, data_range=255)
+                plt.title('model calls: {}'.format(a._total_prediction_calls)
+                            + '\n' + str(a.distance)
+                            + '\n' + 'ssim: {:.2f}'.format(ssim)
+                            + '\n' + 'psnr: {:.2f}'.format(psnr))
+                plt.savefig('adv_{}.png'.format(str(step-1)), dpi=300, bbox_inches='tight')
             
             if self.query_limit is not None:
                 #we are operating in a query-limited scenario

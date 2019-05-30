@@ -151,7 +151,7 @@ class BoundaryAttack(Attack):
         self.k_factor=k_factor
         self.heatmap=heatmap
         self.r = r
-        self.variation = variation,
+        self.variation = variation
         self.initialheatmap = heatmap.copy()
         self.query_limit=query_limit
         self.df_filename=df_filename

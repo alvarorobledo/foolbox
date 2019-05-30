@@ -72,6 +72,7 @@ class BoundaryAttack(Attack):
             batch_size=1,
             k_factor=1,
             r=1,
+            variation='BA',
             heatmap=None,
             bb_coords=None,
             query_limit=None,
@@ -150,6 +151,7 @@ class BoundaryAttack(Attack):
         self.k_factor=k_factor
         self.heatmap=heatmap
         self.r = r
+        self.variation = variation,
         self.initialheatmap = heatmap.copy()
         self.query_limit=query_limit
         self.df_filename=df_filename
@@ -326,8 +328,10 @@ class BoundaryAttack(Attack):
             # start threads that sample from std normal distribution
             rnd_normal_threads = []
 
-            rd = int(original.shape[1]*self.r) #check that this actually gives an integer!
-            new_shape = (rd, rd, 3)
+            new_shape = original.shape
+            if self.variation == 'LFBA':
+                rd = int(original.shape[1]*self.r) #check that this actually gives an integer!
+                new_shape = (rd, rd, 3)
 
             for thread_id in range(threaded_rnd):
                 rnd_normal_thread = threading.Thread(
@@ -449,6 +453,7 @@ class BoundaryAttack(Attack):
                 self.k_factor,
                 self.heatmap,
                 self.r,
+                self.variation,
                 self.spherical_step,
                 self.source_step,
                 self.internal_dtype)
@@ -754,6 +759,7 @@ class BoundaryAttack(Attack):
             k_factor,
             heatmap,
             r,
+            variation,
             spherical_step,
             source_step,
             internal_dtype,
@@ -786,8 +792,9 @@ class BoundaryAttack(Attack):
         # randomgen's rnd is faster and more flexible than numpy's if
         # has a dtype argument and supports the much faster Ziggurat method
 
-        rd = int(original.shape[1]*r) #check that this actually gives an integer!
-        shape = (rd, rd, 3)
+        if variation == 'LFBA':
+            rd = int(original.shape[1]*r) #check that this actually gives an integer!
+            shape = (rd, rd, 3)
 
         if rnd_normal_queue is None:
             perturbation = rng.standard_normal(
@@ -798,22 +805,19 @@ class BoundaryAttack(Attack):
 
         assert perturbation.dtype == internal_dtype
 
-        d = original.shape[1]  #should be 224 for imagenet
-
-        nu1 = np.zeros(shape=(d,d))
-        nu2 = np.zeros(shape=(d,d))
-        nu3 = np.zeros(shape=(d,d))
-
-        nu1[:rd,:rd] = perturbation[:,:,0]
-        nu2[:rd,:rd] = perturbation[:,:,1]
-        nu3[:rd,:rd] = perturbation[:,:,2]
-
-        idct = np.zeros(shape=(d, d, 3))
-        idct[:,:,0] = cv2.idct(nu1)
-        idct[:,:,1] = cv2.idct(nu2)
-        idct[:,:,2] = cv2.idct(nu3)
-
-        perturbation = idct
+        if variation == 'LFBA':
+            d = original.shape[1]  #should be 224 for imagenet
+            nu1 = np.zeros(shape=(d,d))
+            nu2 = np.zeros(shape=(d,d))
+            nu3 = np.zeros(shape=(d,d))
+            nu1[:rd,:rd] = perturbation[:,:,0]
+            nu2[:rd,:rd] = perturbation[:,:,1]
+            nu3[:rd,:rd] = perturbation[:,:,2]
+            idct = np.zeros(shape=(d, d, 3))
+            idct[:,:,0] = cv2.idct(nu1)
+            idct[:,:,1] = cv2.idct(nu2)
+            idct[:,:,2] = cv2.idct(nu3)
+            perturbation = idct
 
         #perturbation = np.multiply(perturbation,heatmap) #apply heatmap to perturbation elementwise
 

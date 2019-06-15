@@ -161,7 +161,7 @@ class BoundaryAttack(Attack):
         #initialise empty dataframe to store important data (for later plots)
         self.info_df = pd.DataFrame(columns=['iterations','total calls','distance',
                                             'shperical step','source step','batch size',
-                                            'ssim', 'psnr'])
+                                            'ssim', 'psnr', 'image'])
 
         if not verbose:
             print('run with verbose=True to see details')
@@ -1283,7 +1283,8 @@ class BoundaryAttack(Attack):
             "source step": self.source_step,
             "batch size": self.batch_size,
             "ssim": ssim,
-            "psnr": psnr
+            "psnr": psnr,
+            "image": a.image
         }, ignore_index=True)
 
 class DummyExecutor(Executor):
